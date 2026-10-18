@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CodeCraftHub: Your Learning Management Platform</title>
+<style>
+  :root {
+    --primary: #8B5CF6; --primary-dark: #7C3AED; --success: #F59E0B; --danger: #EF4444;
+    --bg: #F5F3FF; --card: #FFFFFF; --text: #1F2937; --muted: #6B7280; --border: #E5E7EB;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  header { background: var(--primary); color: #fff; padding: 24px 16px; text-align: center; }
+  header h1 { margin: 0; font-size: 1.6rem; }
+  header p { margin: 6px 0 0; opacity: .9; font-size: .95rem; }
+  main { max-width: 1000px; margin: 0 auto; padding: 16px; }
+  .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .card h2 { margin: 0 0 14px; font-size: 1.15rem; color: var(--primary-dark); }
+  .api-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .api-row label { font-size: .85rem; color: var(--muted); }
+  .api-row input { flex: 1; min-width: 200px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .full { grid-column: 1 / -1; }
+  label.field { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 4px; }
+  input, textarea, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; background: #fff; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--primary); border-color: var(--primary); }
+  textarea { min-height: 80px; resize: vertical; }
+  .req { color: var(--danger); }
+  .err-text { color: var(--danger); font-size: .8rem; min-height: 1em; margin-top: 2px; }
+  button { border: 0; border-radius: 8px; padding: 10px 16px; font: inherit; font-weight: 600; cursor: pointer; color: #fff; }
+  button:disabled { opacity: .6; cursor: not-allowed; }
+  .btn-primary { background: var(--primary); } .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+  .btn-edit { background: var(--success); } .btn-delete { background: var(--danger); }
+  .btn-ghost { background: #E5E7EB; color: var(--text); }
+  .actions { display: flex; gap: 8px; }
+  .list-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .list-head h2 { margin: 0; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; font-size: .92rem; }
+  th { color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .78rem; font-weight: 600; white-space: nowrap; }
+  .st-ns { background: #E5E7EB; color: #374151; } .st-ip { background: #EDE9FE; color: #6D28D9; } .st-c { background: #FEF3C7; color: #B45309; }
+  .empty { text-align: center; color: var(--muted); padding: 24px 0; }
+  .spinner { width: 18px; height: 18px; border: 3px solid #DDD6FE; border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; display: none; }
+  .spinner.on { display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #toast { position: fixed; top: 16px; right: 16px; left: 16px; max-width: 420px; margin-left: auto; padding: 12px 16px; border-radius: 8px; color: #fff; font-weight: 600; display: none; z-index: 20; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+  #toast.success { background: var(--success); display: block; } #toast.error { background: var(--danger); display: block; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+  .modal-bg.on { display: flex; }
+  .modal { background: #fff; border-radius: 12px; padding: 20px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+  .modal h2 { margin-top: 0; color: var(--primary-dark); }
+  .modal .actions { justify-content: flex-end; margin-top: 16px; }
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; }
+    table, thead, tbody, th, td, tr { display: block; }
+    thead { display: none; }
+    tr { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 12px; }
+    td { border: 0; padding: 4px 0; }
+    td::before { content: attr(data-label) ": "; font-weight: 600; color: var(--muted); }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>CodeCraftHub: Your Learning Management Platform</h1>
+  <p>Lacak kursus yang ingin kamu pelajari</p>
+</header>
+
+<main>
+  <section class="card">
+    <div class="api-row">
+      <label for="apiUrl">Base API URL</label>
+      <input id="apiUrl" type="text" placeholder="http://localhost:5000/api/courses">
+      <button class="btn-ghost" id="apiBtn" type="button">Muat Ulang</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Tambah Kursus</h2>
+    <div class="grid">
+      <div class="full">
+        <label class="field" for="addName">Nama Kursus <span class="req">*</span></label>
+        <input id="addName" type="text" placeholder="Contoh: Python Basics">
+        <div class="err-text" id="addNameErr"></div>
+      </div>
+      <div class="full">
+        <label class="field" for="addDesc">Deskripsi <span class="req">*</span></label>
+        <textarea id="addDesc" placeholder="Apa yang akan dipelajari?"></textarea>
+        <div class="err-text" id="addDescErr"></div>
+      </div>
+      <div>
+        <label class="field" for="addDate">Target Selesai <span class="req">*</span></label>
+        <input id="addDate" type="date">
+        <div class="err-text" id="addDateErr"></div>
+      </div>
+      <div>
+        <label class="field" for="addStatus">Status <span class="req">*</span></label>
+        <select id="addStatus">
+          <option>Not Started</option><option>In Progress</option><option>Completed</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions" style="margin-top:16px; align-items:center;">
+      <button class="btn-primary" id="addBtn" type="button">Tambah Kursus</button>
+      <div class="spinner" id="addSpin"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="list-head">
+      <h2>Daftar Kursus</h2>
+      <div class="spinner" id="listSpin"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Nama</th><th>Deskripsi</th><th>Target</th><th>Status</th><th>Dibuat</th><th>Aksi</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- Modal edit -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">Edit Kursus</h2>
+    <div class="grid">
+      <div class="full">
+        <label class="field" for="editName">Nama Kursus <span class="req">*</span></label>
+        <input id="editName" type="text"><div class="err-text" id="editNameErr"></div>
+      </div>
+      <div class="full">
+        <label class="field" for="editDesc">Deskripsi <span class="req">*</span></label>
+        <textarea id="editDesc"></textarea><div class="err-text" id="editDescErr"></div>
+      </div>
+      <div>
+        <label class="field" for="editDate">Target Selesai <span class="req">*</span></label>
+        <input id="editDate" type="date"><div class="err-text" id="editDateErr"></div>
+      </div>
+      <div>
+        <label class="field" for="editStatus">Status <span class="req">*</span></label>
+        <select id="editStatus"><option>Not Started</option><option>In Progress</option><option>Completed</option></select>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="spinner" id="editSpin"></div>
+      <button class="btn-ghost" id="editCancel" type="button">Batal</button>
+      <button class="btn-primary" id="editSave" type="button">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script>
+  // ---------- Konfigurasi ----------
+  const $ = (id) => document.getElementById(id);
+  const DEFAULT_API = 'http://localhost:5000/api/courses';
+  let apiBase = DEFAULT_API;
+  let courses = [];
+  let editingId = null;
+
+  // ---------- Fungsi bantu ----------
+  // Mencegah teks dari server disisipkan sebagai HTML (XSS)
+  function esc(text) {
+    const d = document.createElement('div');
+    d.textContent = text == null ? '' : String(text);
+    return d.innerHTML;
+  }
+
+  let toastTimer;
+  function toast(message, type) {
+    const t = $('toast');
+    t.textContent = message;
+    t.className = type;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = ''; t.style.display = ''; }, 3500);
+  }
+
+  function statusClass(s) { return s === 'Completed' ? 'st-c' : s === 'In Progress' ? 'st-ip' : 'st-ns'; }
+
+  function fmtDate(value) {
+    if (!value) return '-';
+    const d = new Date(String(value).replace(' ', 'T'));
+    if (isNaN(d)) return esc(value);
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function setLoading(spinnerId, on, buttonIds) {
+    $(spinnerId).classList.toggle('on', on);
+    (buttonIds || []).forEach((b) => { $(b).disabled = on; });
+  }
+
+  // Satu fungsi untuk semua panggilan API, dengan penanganan error yang seragam
+  async function api(path, options) {
+    let res;
+    try {
+      res = await fetch(apiBase + path, options);
+    } catch (e) {
+      throw new Error('Tidak bisa terhubung ke server. Pastikan backend berjalan dan Base API URL benar.');
+    }
+    let data = null;
+    try { data = await res.json(); } catch (e) { /* respons kosong */ }
+    if (!res.ok) {
+      throw new Error((data && data.error) || 'Permintaan gagal (HTTP ' + res.status + ')');
+    }
+    return data;
+  }
+
+  // Validasi form; prefix = 'add' atau 'edit'. Mengembalikan data atau null.
+  function readForm(prefix) {
+    const name = $(prefix + 'Name').value.trim();
+    const description = $(prefix + 'Desc').value.trim();
+    const target_date = $(prefix + 'Date').value;
+    const status = $(prefix + 'Status').value;
+    $(prefix + 'NameErr').textContent = name ? '' : 'Nama kursus wajib diisi';
+    $(prefix + 'DescErr').textContent = description ? '' : 'Deskripsi wajib diisi';
+    $(prefix + 'DateErr').textContent = /^\d{4}-\d{2}-\d{2}$/.test(target_date) ? '' : 'Tanggal target wajib diisi';
+    if (!name || !description || !/^\d{4}-\d{2}-\d{2}$/.test(target_date)) return null;
+    return { name, description, target_date, status };
+  }
+
+  // ---------- Tampilan ----------
+  function render() {
+    const tbody = $('rows');
+    if (courses.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty">Belum ada kursus. Tambahkan kursus pertamamu di atas.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = courses.map((c) =>
+      '<tr>' +
+        '<td data-label="ID">' + esc(c.id) + '</td>' +
+        '<td data-label="Nama"><strong>' + esc(c.name) + '</strong></td>' +
+        '<td data-label="Deskripsi">' + esc(c.description) + '</td>' +
+        '<td data-label="Target">' + fmtDate(c.target_date) + '</td>' +
+        '<td data-label="Status"><span class="badge ' + statusClass(c.status) + '">' + esc(c.status) + '</span></td>' +
+        '<td data-label="Dibuat">' + fmtDate(c.created_at) + '</td>' +
+        '<td data-label="Aksi"><div class="actions">' +
+          '<button class="btn-edit" data-edit="' + esc(c.id) + '" type="button">Edit</button>' +
+          '<button class="btn-delete" data-del="' + esc(c.id) + '" type="button">Remove</button>' +
+        '</div></td>' +
+      '</tr>'
+    ).join('');
+  }
+
+  // ---------- Operasi CRUD ----------
+  async function loadCourses() {
+    setLoading('listSpin', true, ['apiBtn']);
+    try {
+      courses = await api('');
+      render();
+    } catch (e) {
+      courses = []; render();
+      toast(e.message, 'error');
+    } finally {
+      setLoading('listSpin', false, ['apiBtn']);
+    }
+  }
+
+  async function addCourse() {
+    const data = readForm('add');
+    if (!data) return toast('Lengkapi semua field yang wajib diisi.', 'error');
+    setLoading('addSpin', true, ['addBtn']);
+    try {
+      await api('', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      toast('Kursus berhasil ditambahkan.', 'success');
+      $('addName').value = ''; $('addDesc').value = ''; $('addDate').value = ''; $('addStatus').value = 'Not Started';
+      await loadCourses();
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      setLoading('addSpin', false, ['addBtn']);
+    }
+  }
+
+  function openEdit(id) {
+    const c = courses.find((x) => String(x.id) === String(id));
+    if (!c) return;
+    editingId = c.id;
+    $('editName').value = c.name; $('editDesc').value = c.description;
+    $('editDate').value = c.target_date; $('editStatus').value = c.status;
+    ['editNameErr', 'editDescErr', 'editDateErr'].forEach((e) => { $(e).textContent = ''; });
+    $('modalBg').classList.add('on');
+    $('editName').focus();
+  }
+
+  function closeEdit() { $('modalBg').classList.remove('on'); editingId = null; }
+
+  async function saveEdit() {
+    const data = readForm('edit');
+    if (!data) return toast('Lengkapi semua field yang wajib diisi.', 'error');
+    setLoading('editSpin', true, ['editSave', 'editCancel']);
+    try {
+      await api('/' + editingId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      toast('Kursus berhasil diperbarui.', 'success');
+      closeEdit();
+      await loadCourses();
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      setLoading('editSpin', false, ['editSave', 'editCancel']);
+    }
+  }
+
+  async function removeCourse(id) {
+    const c = courses.find((x) => String(x.id) === String(id));
+    if (!c || !confirm('Hapus kursus "' + c.name + '"?')) return;
+    setLoading('listSpin', true);
+    try {
+      await api('/' + id, { method: 'DELETE' });
+      toast('Kursus berhasil dihapus.', 'success');
+      await loadCourses();
+    } catch (e) {
+      setLoading('listSpin', false);
+      toast(e.message, 'error');
+    }
+  }
+
+  // ---------- Event ----------
+  $('addBtn').addEventListener('click', addCourse);
+  $('editSave').addEventListener('click', saveEdit);
+  $('editCancel').addEventListener('click', closeEdit);
+  $('modalBg').addEventListener('click', (e) => { if (e.target === $('modalBg')) closeEdit(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeEdit(); });
+  $('rows').addEventListener('click', (e) => {
+    const edit = e.target.closest('[data-edit]');
+    const del = e.target.closest('[data-del]');
+    if (edit) openEdit(edit.dataset.edit);
+    if (del) removeCourse(del.dataset.del);
+  });
+  $('apiBtn').addEventListener('click', () => {
+    apiBase = $('apiUrl').value.trim().replace(/\/+$/, '') || DEFAULT_API;
+    try { localStorage.setItem('cch_api', apiBase); } catch (e) { /* abaikan */ }
+    loadCourses();
+  });
+
+  // ---------- Mulai ----------
+  // Urutan penentuan alamat API: (1) alamat yang pernah disimpan,
+  // (2) server yang sama jika halaman dibuka dari backend, (3) default localhost:5000
+  (function init() {
+    let saved = null;
+    try { saved = localStorage.getItem('cch_api'); } catch (e) { /* abaikan */ }
+    if (saved) apiBase = saved;
+    else if (location.protocol.startsWith('http') && location.port && location.port !== '5500' && location.port !== '5501') apiBase = location.origin + '/api/courses';
+    $('apiUrl').value = apiBase;
+    loadCourses();
+  })();
+</script>
+</body>
+</html>
